@@ -26,10 +26,11 @@
 <main>
 
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
-<p>#Global Mortality
-get data from github tt repo</p>
+<p>get data from github tidy tuesday repo</p>
 <pre class="r"><code>raw &lt;- tt_load(&quot;2018-04-16&quot;)
 ## --- Compiling #TidyTuesday Information for 2018-04-16 ----
 ## --- There is 1 file available ---
@@ -37,6 +38,1506 @@ get data from github tt repo</p>
 ## 
 ##  Downloading file 1 of 1: `global_mortality.xlsx`
 ## --- Download complete ---</code></pre>
+<p>preview data</p>
+<pre class="r"><code>skimmed &lt;- raw$global_mortality %&gt;% skim() #cars
+skimmed_better &lt;- skimmed %&gt;%  #workaround from https://github.com/ropensci/skimr/issues/278
+  rowwise() %&gt;%
+  dplyr::mutate(hist = 
+     numeric.hist %&gt;% 
+     utf8ToInt() %&gt;% 
+     as.character() %&gt;% 
+     paste0(&quot;&amp;#&quot;, . ,&quot;;&quot;, collapse = &quot;&quot;)) %&gt;%
+  dplyr::select(-numeric.hist) %&gt;%
+  dplyr::rename_with(~ tolower(gsub(&quot;skim_|numeric.|character.&quot;, &quot;&quot;, .x, fixed = FALSE))) %&gt;%
+  mutate_if(is.numeric, round, digits=2) %&gt;%
+  dplyr::select(c(&#39;type&#39;,&#39;variable&#39;,&#39;n_missing&#39;,&#39;complete_rate&#39;,&#39;n_unique&#39;,&#39;hist&#39;,&#39;mean&#39;,&#39;sd&#39;,&#39;min&#39;,&#39;p25&#39;,&#39;p50&#39;,&#39;p75&#39;, &#39;max&#39;))
+
+skimmed_better %&gt;% 
+  # kable(escape = FALSE) %&gt;%
+  kbl(escape = FALSE) %&gt;%
+  kable_paper(&quot;hover&quot;, full_width = F, font_size = 9, fixed_thead = T)</code></pre>
+<table class=" lightable-paper lightable-hover" style="font-size: 9px; font-family: &quot;Arial Narrow&quot;, arial, helvetica, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+type
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+variable
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_missing
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+complete_rate
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_unique
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+hist
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p25
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p50
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p75
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+max
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+country
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+228
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+32
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+country_code
+</td>
+<td style="text-align:right;">
+864
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+196
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+year
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▇▇▇▇
+</td>
+<td style="text-align:right;">
+2003.00
+</td>
+<td style="text-align:right;">
+7.79
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1996.00
+</td>
+<td style="text-align:right;">
+2003.00
+</td>
+<td style="text-align:right;">
+2010.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Cardiovascular diseases (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▃▅▇▂▁
+</td>
+<td style="text-align:right;">
+29.93
+</td>
+<td style="text-align:right;">
+14.02
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+18.74
+</td>
+<td style="text-align:right;">
+30.65
+</td>
+<td style="text-align:right;">
+38.45
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Cancers (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▇▆▆▃
+</td>
+<td style="text-align:right;">
+14.39
+</td>
+<td style="text-align:right;">
+8.15
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+6.93
+</td>
+<td style="text-align:right;">
+13.31
+</td>
+<td style="text-align:right;">
+21.36
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Respiratory diseases (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▇▂▁▁
+</td>
+<td style="text-align:right;">
+4.10
+</td>
+<td style="text-align:right;">
+2.35
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+2.26
+</td>
+<td style="text-align:right;">
+3.63
+</td>
+<td style="text-align:right;">
+5.38
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Diabetes (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▁▁▁
+</td>
+<td style="text-align:right;">
+6.29
+</td>
+<td style="text-align:right;">
+4.44
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3.20
+</td>
+<td style="text-align:right;">
+4.99
+</td>
+<td style="text-align:right;">
+7.93
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Dementia (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▃▁▁▁
+</td>
+<td style="text-align:right;">
+3.22
+</td>
+<td style="text-align:right;">
+2.75
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1.01
+</td>
+<td style="text-align:right;">
+2.53
+</td>
+<td style="text-align:right;">
+4.33
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Lower respiratory infections (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▆▃▁▁
+</td>
+<td style="text-align:right;">
+5.84
+</td>
+<td style="text-align:right;">
+3.42
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3.21
+</td>
+<td style="text-align:right;">
+5.14
+</td>
+<td style="text-align:right;">
+8.16
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Neonatal deaths (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▃▃▁▁
+</td>
+<td style="text-align:right;">
+4.57
+</td>
+<td style="text-align:right;">
+3.85
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.69
+</td>
+<td style="text-align:right;">
+3.89
+</td>
+<td style="text-align:right;">
+7.74
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Diarrheal diseases (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▁▁▁
+</td>
+<td style="text-align:right;">
+3.20
+</td>
+<td style="text-align:right;">
+4.36
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.18
+</td>
+<td style="text-align:right;">
+0.77
+</td>
+<td style="text-align:right;">
+5.29
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Road accidents (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+2.53
+</td>
+<td style="text-align:right;">
+2.19
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1.36
+</td>
+<td style="text-align:right;">
+1.93
+</td>
+<td style="text-align:right;">
+2.90
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Liver disease (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▁▁▁
+</td>
+<td style="text-align:right;">
+2.12
+</td>
+<td style="text-align:right;">
+1.24
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1.34
+</td>
+<td style="text-align:right;">
+1.83
+</td>
+<td style="text-align:right;">
+2.54
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Tuberculosis (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▁▁▁
+</td>
+<td style="text-align:right;">
+2.13
+</td>
+<td style="text-align:right;">
+2.65
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.24
+</td>
+<td style="text-align:right;">
+0.91
+</td>
+<td style="text-align:right;">
+3.33
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Kidney disease (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▅▂▁▁
+</td>
+<td style="text-align:right;">
+2.09
+</td>
+<td style="text-align:right;">
+1.49
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.90
+</td>
+<td style="text-align:right;">
+1.73
+</td>
+<td style="text-align:right;">
+2.96
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Digestive diseases (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▂▇▃▁▁
+</td>
+<td style="text-align:right;">
+1.97
+</td>
+<td style="text-align:right;">
+0.68
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1.51
+</td>
+<td style="text-align:right;">
+1.93
+</td>
+<td style="text-align:right;">
+2.29
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+HIV/AIDS (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+3.35
+</td>
+<td style="text-align:right;">
+7.81
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+0.44
+</td>
+<td style="text-align:right;">
+2.33
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Suicide (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+1.39
+</td>
+<td style="text-align:right;">
+1.11
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.69
+</td>
+<td style="text-align:right;">
+1.18
+</td>
+<td style="text-align:right;">
+1.80
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Malaria (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+1.80
+</td>
+<td style="text-align:right;">
+4.21
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.48
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Homicide (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.98
+</td>
+<td style="text-align:right;">
+1.45
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.24
+</td>
+<td style="text-align:right;">
+0.52
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Nutritional deficiencies (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+1.10
+</td>
+<td style="text-align:right;">
+1.87
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.09
+</td>
+<td style="text-align:right;">
+0.40
+</td>
+<td style="text-align:right;">
+1.34
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Meningitis (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▁▁▁
+</td>
+<td style="text-align:right;">
+0.78
+</td>
+<td style="text-align:right;">
+0.97
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.11
+</td>
+<td style="text-align:right;">
+0.35
+</td>
+<td style="text-align:right;">
+1.02
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Protein-energy malnutrition (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1.81
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.06
+</td>
+<td style="text-align:right;">
+0.32
+</td>
+<td style="text-align:right;">
+1.22
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Drowning (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▁▁▁
+</td>
+<td style="text-align:right;">
+0.71
+</td>
+<td style="text-align:right;">
+0.51
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.35
+</td>
+<td style="text-align:right;">
+0.61
+</td>
+<td style="text-align:right;">
+0.96
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Maternal deaths (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▂▁▁
+</td>
+<td style="text-align:right;">
+0.59
+</td>
+<td style="text-align:right;">
+0.70
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.03
+</td>
+<td style="text-align:right;">
+0.24
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Parkinson disease (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▃▁▁▁
+</td>
+<td style="text-align:right;">
+0.29
+</td>
+<td style="text-align:right;">
+0.26
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.07
+</td>
+<td style="text-align:right;">
+0.21
+</td>
+<td style="text-align:right;">
+0.43
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Alcohol disorders (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.32
+</td>
+<td style="text-align:right;">
+0.41
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.39
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Intestinal infectious diseases (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.18
+</td>
+<td style="text-align:right;">
+0.30
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.01
+</td>
+<td style="text-align:right;">
+0.27
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Drug disorders (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▂▁▁▁
+</td>
+<td style="text-align:right;">
+0.18
+</td>
+<td style="text-align:right;">
+0.19
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.06
+</td>
+<td style="text-align:right;">
+0.12
+</td>
+<td style="text-align:right;">
+0.23
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Hepatitis (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.16
+</td>
+<td style="text-align:right;">
+0.17
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.04
+</td>
+<td style="text-align:right;">
+0.11
+</td>
+<td style="text-align:right;">
+0.24
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Fire (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▇▁▁▁
+</td>
+<td style="text-align:right;">
+0.33
+</td>
+<td style="text-align:right;">
+0.18
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.19
+</td>
+<td style="text-align:right;">
+0.32
+</td>
+<td style="text-align:right;">
+0.43
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Heat-related (hot and cold exposure) (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.10
+</td>
+<td style="text-align:right;">
+0.13
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.04
+</td>
+<td style="text-align:right;">
+0.07
+</td>
+<td style="text-align:right;">
+0.11
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Natural disasters (%)
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.09
+</td>
+<td style="text-align:right;">
+1.28
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Conflict (%)
+</td>
+<td style="text-align:right;">
+1398
+</td>
+<td style="text-align:right;">
+0.77
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.29
+</td>
+<td style="text-align:right;">
+2.40
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+Terrorism (%)
+</td>
+<td style="text-align:right;">
+1398
+</td>
+<td style="text-align:right;">
+0.77
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+0.04
+</td>
+<td style="text-align:right;">
+0.23
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
 
 </main>
 

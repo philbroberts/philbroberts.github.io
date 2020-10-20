@@ -16,13 +16,31 @@ library(ggplot2)
 library(dplyr, warn.conflicts = FALSE)
 library(here)
 library(skimr)
-library(kableExtra)
+library(kableExtra) #https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
 ```
 
-#Global Mortality
- get data from github tt repo
+get data from github tidy tuesday repo
 ```{r}
 raw <- tt_load("2018-04-16")
 ```
  
- 
+preview data
+```{r results='asis'}
+skimmed <- raw$global_mortality %>% skim() #cars
+skimmed_better <- skimmed %>%  #workaround from https://github.com/ropensci/skimr/issues/278
+  rowwise() %>%
+  dplyr::mutate(hist = 
+     numeric.hist %>% 
+     utf8ToInt() %>% 
+     as.character() %>% 
+     paste0("&#", . ,";", collapse = "")) %>%
+  dplyr::select(-numeric.hist) %>%
+  dplyr::rename_with(~ tolower(gsub("skim_|numeric.|character.", "", .x, fixed = FALSE))) %>%
+  mutate_if(is.numeric, round, digits=2) %>%
+  dplyr::select(c('type','variable','n_missing','complete_rate','n_unique','hist','mean','sd','min','p25','p50','p75', 'max'))
+
+skimmed_better %>% 
+  # kable(escape = FALSE) %>%
+  kbl(escape = FALSE) %>%
+  kable_paper("hover", full_width = F, font_size = 9, fixed_thead = T)
+```

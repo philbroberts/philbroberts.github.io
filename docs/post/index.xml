@@ -22,8 +22,9 @@
       <pubDate>Mon, 16 Apr 2018 00:00:00 +0000</pubDate>
       
       <guid>/post/global-mortality/</guid>
-      <description>#Global Mortalityget data from github tt repo
-raw &amp;lt;- tt_load(&amp;quot;2018-04-16&amp;quot;)## --- Compiling #TidyTuesday Information for 2018-04-16 ----## --- There is 1 file available ---## --- Starting Download ---## ## Downloading file 1 of 1: `global_mortality.xlsx`## --- Download complete ---</description>
+      <description>get data from github tidy tuesday repo
+raw &amp;lt;- tt_load(&amp;quot;2018-04-16&amp;quot;)## --- Compiling #TidyTuesday Information for 2018-04-16 ----## --- There is 1 file available ---## --- Starting Download ---## ## Downloading file 1 of 1: `global_mortality.xlsx`## --- Download complete ---preview data
+skimmed &amp;lt;- raw$global_mortality %&amp;gt;% skim() #carsskimmed_better &amp;lt;- skimmed %&amp;gt;% #workaround from https://github.com/ropensci/skimr/issues/278rowwise() %&amp;gt;%dplyr::mutate(hist = numeric.hist %&amp;gt;% utf8ToInt() %&amp;gt;% as.</description>
     </item>
     
     <item>
