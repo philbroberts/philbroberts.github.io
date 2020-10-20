@@ -1,0 +1,28 @@
+---
+title: Global Mortality
+author: Phil Roberts
+date: '2018-04-16'
+slug: global-mortality
+categories:
+  - Tidy Tuesday
+tags:
+  - Health
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE)
+library(tidytuesdayR)
+library(ggplot2)
+library(dplyr, warn.conflicts = FALSE)
+library(here)
+library(skimr)
+library(kableExtra)
+```
+
+#Global Mortality
+ get data from github tt repo
+```{r}
+raw <- tt_load("2018-04-16")
+```
+ 
+ 
