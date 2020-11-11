@@ -14,20 +14,68 @@ knitr::opts_chunk$set(collapse = TRUE)
 library(tidytuesdayR)
 library(ggplot2)
 library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
 library(here)
 library(skimr)
 library(kableExtra) #https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+library(stringr)
+library(jsonlite) #for continents: https://datahub.io/JohnSnowLabs/country-and-continent-codes-list#r
 ```
 
-get data from github tidy tuesday repo
+```{r functions, include=FALSE}
+#Functions
+save_plot_date <- function(folder = "temp_plots"){
+  ggsave(here::here(paste0(folder,"/plot_",stringr::str_replace_all(Sys.time(),":|-| ","_"),".png")))
+}
+ggplot_print_replace <- function(x, ...) {
+  save_plot_date("temp_plots")
+  ggplot2:::print.ggplot(x, ...)
+}
+#Replace ggplot print method
+print.ggplot <- ggplot_print_replace
+```
+
+# Global Mortality - Causes and Trends
+
+#### Background
+
+[Our World in Data](https://ourworldindata.org/what-does-the-world-die-from) asked 'what does the world die from?':
+
+| In 2017, around [56 million](https://ourworldindata.org/grapher/number-of-deaths-by-age-group) people died -- nearly half of these were aged 70 years or older; 27% aged 50-69; 14% aged 15-49; only 1% aged 5-14; and around 10% were children under the age of 5.
+| 
+| The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a [range of diseases](https://www.who.int/cardiovascular_diseases/about_cvd/en/) that affect the heart and blood vessels...Cardiovascular diseases were responsible for around one-third of all deaths. 
+| 
+| [Cancers](https://ourworldindata.org/how-many-people-in-the-world-die-from-cancer)...were the second largest, claiming around 17%, or every sixth death, globally...Approximately 1.8 million newborns still died due to complications at birth.  Diarrheal diseases...claimed 1.6 million people in 2017 and...around 620,000...died from malaria in 2017 ... [Road incidents](https://ourworldindata.org/causes-of-death#road-accidents)...claim(ed) 1.2 million in 2017...The number who die from [suicide](https://ourworldindata.org/suicide) is more than double that of [homicide](https://ourworldindata.org/homicides) at a global level. 
+
+#### Get data
+
+Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to *not* manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it's ok. Also, grab countinent lookup table.
+
 ```{r}
 raw <- tt_load("2018-04-16")
+ccc_file <- 'https://datahub.io/JohnSnowLabs/country-and-continent-codes-list/datapackage.json'
+ccc_data <- fromJSON(paste(readLines(ccc_file), collapse=""))
+for(i in 1:length(ccc_data$resources$datahub$type)){
+  if(ccc_data$resources$datahub$type[i]=='derived/csv'){
+    path_to_file = ccc_data$resources$path[i]
+    ccc <- read.csv(url(path_to_file)) %>%
+      replace_na(list(Continent_Code='NA'))
+    
+  }
+}
 ```
- 
-preview data
+
+#### Preview data
+
+Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() is discouraged, but not sure why. Dataset has a row for each country-year and column for each (n=\~30) disease indicating share of deaths due to the disease.
+
 ```{r results='asis'}
-skimmed <- raw$global_mortality %>% skim() #cars
-skimmed_better <- skimmed %>%  #workaround from https://github.com/ropensci/skimr/issues/278
+df0 <- raw$global_mortality %>%
+  left_join(ccc, by=c('country_code'='Three_Letter_Country_Code')) %>%
+      replace_na(list(Continent_Code='Smry', Continent_Name='Summary'))
+
+skimmed <- df0 %>% 
+  skim() %>%  #histogram workaround from https://github.com/ropensci/skimr/issues/278
   rowwise() %>%
   dplyr::mutate(hist = 
      numeric.hist %>% 
@@ -37,10 +85,48 @@ skimmed_better <- skimmed %>%  #workaround from https://github.com/ropensci/skim
   dplyr::select(-numeric.hist) %>%
   dplyr::rename_with(~ tolower(gsub("skim_|numeric.|character.", "", .x, fixed = FALSE))) %>%
   mutate_if(is.numeric, round, digits=2) %>%
-  dplyr::select(c('type','variable','n_missing','complete_rate','n_unique','hist','mean','sd','min','p25','p50','p75', 'max'))
+  dplyr::select(c('type','variable','complete_rate','n_unique','hist','mean','sd','min','p25','p50','p75', 'max'))
 
-skimmed_better %>% 
-  # kable(escape = FALSE) %>%
+skimmed %>% 
   kbl(escape = FALSE) %>%
   kable_paper("hover", full_width = F, font_size = 9, fixed_thead = T)
+```
+
+\#todo:
+
+-   display row and column count in raw data
+
+-   figure out why n\_unique shows NA
+
+-   shorten 'type'
+
+-   investigate [boxplots built in to kableExtra](https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Insert_Images_into_Columns); or sortable tables with [DT](https://rstudio.github.io/DT/)
+
+-   exclude deaths due to natural disaster, conflict, terrorism as these are [volatile](https://ourworldindata.org/is-it-fair-to-compare-terrorism-and-disaster-with-other-causes-of-death)
+
+-   make table shorter
+
+#### Cardiovascular Disease
+
+Dig into CVD. Due to spaces in field names, need back-tic in ggplot function call.
+
+```{r results='asis'}
+dfcvd <- df0 %>%
+  dplyr::select(c('Continent_Name','country','year','Cardiovascular diseases (%)')) 
+
+pltcvd <- dfcvd %>%
+  filter(!is.na('Continent_Name')) %>%
+  ggplot(aes(x=year, y =`Cardiovascular diseases (%)`, group=country) ) +
+  # geom_line() +
+
+#   geom_point(aes(y = r) ) +
+  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=Continent_Name) ) +
+  # geom_line(aes(y = LOESS_FIT, color="loess") ) 
+#   geom_line(aes(y = SGMT_RT, color="chgpt sgmt") ) +
+#   geom_line(aes(y = SGMT_RT + 2*SGMT_SD, color="chgpt 2sd") ) +
+#   labs(title = "EED"#, subtitle = "actual = dot, spline = line", x = ""
+#        ) +
+  facet_wrap(~ Continent_Name, scale = "fixed", shrink=TRUE, ncol = 3, strip.position = 'left') 
+#   scale_x_date(date_labels = "%Y")
+pltcvd
 ```
