@@ -52,15 +52,26 @@ print.ggplot <- ggplot_print_replace
 Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to *not* manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it's ok. Also, grab countinent lookup table.
 
 ```{r}
-raw <- tt_load("2018-04-16")
-ccc_file <- 'https://datahub.io/JohnSnowLabs/country-and-continent-codes-list/datapackage.json'
+# facts
+# raw <- tt_load("2018-04-16")
+
+# dimensions: comprehensive country codes
+ccc_file <- 'https://datahub.io/core/country-codes/datapackage.json'
 ccc_data <- fromJSON(paste(readLines(ccc_file), collapse=""))
 for(i in 1:length(ccc_data$resources$datahub$type)){
   if(ccc_data$resources$datahub$type[i]=='derived/csv'){
     path_to_file = ccc_data$resources$path[i]
     ccc <- read.csv(url(path_to_file)) %>%
-      replace_na(list(Continent_Code='NA'))
-    
+      replace_na(list(Continent_Code='NA')) %>%
+      dplyr::select(c('continent'='Continent', 
+                      'region'='Region.Name', 
+                      'subregion'='Sub.region.Name',
+                      'country'='official_name_en',
+                      'capital'='Capital',
+                      'cntr_cd'='ISO3166.1.Alpha.3',
+                      'indendent'='is_independent',
+                      'development'='Developed...Developing.Countries',
+                      'least developed'='Least.Developed.Countries..LDC.')) 
   }
 }
 ```
