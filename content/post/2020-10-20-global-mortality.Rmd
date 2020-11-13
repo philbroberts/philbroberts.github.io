@@ -19,7 +19,7 @@ library(here)
 library(skimr)
 library(kableExtra) #https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
 library(stringr)
-library(jsonlite) #for continents: https://datahub.io/JohnSnowLabs/country-and-continent-codes-list#r
+library(jsonlite) #for continents: https://datahub.io/core/country-codes#r
 ```
 
 ```{r functions, include=FALSE}
@@ -43,9 +43,9 @@ print.ggplot <- ggplot_print_replace
 
 | In 2017, around [56 million](https://ourworldindata.org/grapher/number-of-deaths-by-age-group) people died -- nearly half of these were aged 70 years or older; 27% aged 50-69; 14% aged 15-49; only 1% aged 5-14; and around 10% were children under the age of 5.
 | 
-| The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a [range of diseases](https://www.who.int/cardiovascular_diseases/about_cvd/en/) that affect the heart and blood vessels...Cardiovascular diseases were responsible for around one-third of all deaths. 
+| The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a [range of diseases](https://www.who.int/cardiovascular_diseases/about_cvd/en/) that affect the heart and blood vessels...Cardiovascular diseases were responsible for around one-third of all deaths.
 | 
-| [Cancers](https://ourworldindata.org/how-many-people-in-the-world-die-from-cancer)...were the second largest, claiming around 17%, or every sixth death, globally...Approximately 1.8 million newborns still died due to complications at birth.  Diarrheal diseases...claimed 1.6 million people in 2017 and...around 620,000...died from malaria in 2017 ... [Road incidents](https://ourworldindata.org/causes-of-death#road-accidents)...claim(ed) 1.2 million in 2017...The number who die from [suicide](https://ourworldindata.org/suicide) is more than double that of [homicide](https://ourworldindata.org/homicides) at a global level. 
+| [Cancers](https://ourworldindata.org/how-many-people-in-the-world-die-from-cancer)...were the second largest, claiming around 17%, or every sixth death, globally...Approximately 1.8 million newborns still died due to complications at birth. Diarrheal diseases...claimed 1.6 million people in 2017 and...around 620,000...died from malaria in 2017 ... [Road incidents](https://ourworldindata.org/causes-of-death#road-accidents)...claim(ed) 1.2 million in 2017...The number who die from [suicide](https://ourworldindata.org/suicide) is more than double that of [homicide](https://ourworldindata.org/homicides) at a global level.
 
 #### Get data
 
@@ -53,22 +53,22 @@ Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not s
 
 ```{r}
 # facts
-# raw <- tt_load("2018-04-16")
+raw <- tt_load("2018-04-16")
 
 # dimensions: comprehensive country codes
 ccc_file <- 'https://datahub.io/core/country-codes/datapackage.json'
-ccc_data <- fromJSON(paste(readLines(ccc_file), collapse=""))
+ccc_data <- fromJSON(paste(readLines(ccc_file, warn=FALSE), collapse=""))
 for(i in 1:length(ccc_data$resources$datahub$type)){
   if(ccc_data$resources$datahub$type[i]=='derived/csv'){
     path_to_file = ccc_data$resources$path[i]
     ccc <- read.csv(url(path_to_file)) %>%
-      replace_na(list(Continent_Code='NA')) %>%
+      # replace_na(list(Continent_Code='NA')) %>%
       dplyr::select(c('continent'='Continent', 
                       'region'='Region.Name', 
                       'subregion'='Sub.region.Name',
-                      'country'='official_name_en',
+                      # 'country'='official_name_en',
                       'capital'='Capital',
-                      'cntr_cd'='ISO3166.1.Alpha.3',
+                      'country_code'='ISO3166.1.Alpha.3',
                       'indendent'='is_independent',
                       'development'='Developed...Developing.Countries',
                       'least developed'='Least.Developed.Countries..LDC.')) 
@@ -82,7 +82,7 @@ Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() i
 
 ```{r results='asis'}
 df0 <- raw$global_mortality %>%
-  left_join(ccc, by=c('country_code'='Three_Letter_Country_Code')) %>%
+  left_join(ccc, by=c('country_code'='country_code')) %>%
       replace_na(list(Continent_Code='Smry', Continent_Name='Summary'))
 
 skimmed <- df0 %>% 
@@ -123,21 +123,21 @@ Dig into CVD. Due to spaces in field names, need back-tic in ggplot function cal
 
 ```{r results='asis'}
 dfcvd <- df0 %>%
-  dplyr::select(c('Continent_Name','country','year','Cardiovascular diseases (%)')) 
+  dplyr::select(c('continent','country','year','Cardiovascular diseases (%)')) 
 
 pltcvd <- dfcvd %>%
-  filter(!is.na('Continent_Name')) %>%
+  filter(!is.na('continent')) %>%
   ggplot(aes(x=year, y =`Cardiovascular diseases (%)`, group=country) ) +
   # geom_line() +
 
 #   geom_point(aes(y = r) ) +
-  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=Continent_Name) ) +
+  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent) ) +
   # geom_line(aes(y = LOESS_FIT, color="loess") ) 
 #   geom_line(aes(y = SGMT_RT, color="chgpt sgmt") ) +
 #   geom_line(aes(y = SGMT_RT + 2*SGMT_SD, color="chgpt 2sd") ) +
 #   labs(title = "EED"#, subtitle = "actual = dot, spline = line", x = ""
 #        ) +
-  facet_wrap(~ Continent_Name, scale = "fixed", shrink=TRUE, ncol = 3, strip.position = 'left') 
+  facet_wrap(~ continent, scale = "fixed", shrink=TRUE, ncol = 3, strip.position = 'left') 
 #   scale_x_date(date_labels = "%Y")
 pltcvd
 ```

@@ -14,17 +14,58 @@ tags:
 <link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
 
 
-<p>get data from github tidy tuesday repo</p>
-<pre class="r"><code>raw &lt;- tt_load(&quot;2018-04-16&quot;)
+<div id="global-mortality---causes-and-trends" class="section level1">
+<h1>Global Mortality - Causes and Trends</h1>
+<div id="background" class="section level4">
+<h4>Background</h4>
+<p><a href="https://ourworldindata.org/what-does-the-world-die-from">Our World in Data</a> asked ‘what does the world die from?’:</p>
+<div class="line-block">In 2017, around <a href="https://ourworldindata.org/grapher/number-of-deaths-by-age-group">56 million</a> people died – nearly half of these were aged 70 years or older; 27% aged 50-69; 14% aged 15-49; only 1% aged 5-14; and around 10% were children under the age of 5.<br />
+<br />
+The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a <a href="https://www.who.int/cardiovascular_diseases/about_cvd/en/">range of diseases</a> that affect the heart and blood vessels…Cardiovascular diseases were responsible for around one-third of all deaths.<br />
+<br />
+<a href="https://ourworldindata.org/how-many-people-in-the-world-die-from-cancer">Cancers</a>…were the second largest, claiming around 17%, or every sixth death, globally…Approximately 1.8 million newborns still died due to complications at birth. Diarrheal diseases…claimed 1.6 million people in 2017 and…around 620,000…died from malaria in 2017 … <a href="https://ourworldindata.org/causes-of-death#road-accidents">Road incidents</a>…claim(ed) 1.2 million in 2017…The number who die from <a href="https://ourworldindata.org/suicide">suicide</a> is more than double that of <a href="https://ourworldindata.org/homicides">homicide</a> at a global level.</div>
+</div>
+<div id="get-data" class="section level4">
+<h4>Get data</h4>
+<p>Load data from github tidy tuesday repo. Use the tidytuesdayR package. I’m not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to <em>not</em> manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it’s ok. Also, grab countinent lookup table.</p>
+<pre class="r"><code># facts
+raw &lt;- tt_load(&quot;2018-04-16&quot;)
 ## --- Compiling #TidyTuesday Information for 2018-04-16 ----
 ## --- There is 1 file available ---
 ## --- Starting Download ---
 ## 
 ##  Downloading file 1 of 1: `global_mortality.xlsx`
-## --- Download complete ---</code></pre>
-<p>preview data</p>
-<pre class="r"><code>skimmed &lt;- raw$global_mortality %&gt;% skim() #cars
-skimmed_better &lt;- skimmed %&gt;%  #workaround from https://github.com/ropensci/skimr/issues/278
+## --- Download complete ---
+
+# dimensions: comprehensive country codes
+ccc_file &lt;- &#39;https://datahub.io/core/country-codes/datapackage.json&#39;
+ccc_data &lt;- fromJSON(paste(readLines(ccc_file, warn=FALSE), collapse=&quot;&quot;))
+for(i in 1:length(ccc_data$resources$datahub$type)){
+  if(ccc_data$resources$datahub$type[i]==&#39;derived/csv&#39;){
+    path_to_file = ccc_data$resources$path[i]
+    ccc &lt;- read.csv(url(path_to_file)) %&gt;%
+      # replace_na(list(Continent_Code=&#39;NA&#39;)) %&gt;%
+      dplyr::select(c(&#39;continent&#39;=&#39;Continent&#39;, 
+                      &#39;region&#39;=&#39;Region.Name&#39;, 
+                      &#39;subregion&#39;=&#39;Sub.region.Name&#39;,
+                      # &#39;country&#39;=&#39;official_name_en&#39;,
+                      &#39;capital&#39;=&#39;Capital&#39;,
+                      &#39;country_code&#39;=&#39;ISO3166.1.Alpha.3&#39;,
+                      &#39;indendent&#39;=&#39;is_independent&#39;,
+                      &#39;development&#39;=&#39;Developed...Developing.Countries&#39;,
+                      &#39;least developed&#39;=&#39;Least.Developed.Countries..LDC.&#39;)) 
+  }
+}</code></pre>
+</div>
+<div id="preview-data" class="section level4">
+<h4>Preview data</h4>
+<p>Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() is discouraged, but not sure why. Dataset has a row for each country-year and column for each (n=~30) disease indicating share of deaths due to the disease.</p>
+<pre class="r"><code>df0 &lt;- raw$global_mortality %&gt;%
+  left_join(ccc, by=c(&#39;country_code&#39;=&#39;country_code&#39;)) %&gt;%
+      replace_na(list(Continent_Code=&#39;Smry&#39;, Continent_Name=&#39;Summary&#39;))
+
+skimmed &lt;- df0 %&gt;% 
+  skim() %&gt;%  #histogram workaround from https://github.com/ropensci/skimr/issues/278
   rowwise() %&gt;%
   dplyr::mutate(hist = 
      numeric.hist %&gt;% 
@@ -34,10 +75,9 @@ skimmed_better &lt;- skimmed %&gt;%  #workaround from https://github.com/ropensc
   dplyr::select(-numeric.hist) %&gt;%
   dplyr::rename_with(~ tolower(gsub(&quot;skim_|numeric.|character.&quot;, &quot;&quot;, .x, fixed = FALSE))) %&gt;%
   mutate_if(is.numeric, round, digits=2) %&gt;%
-  dplyr::select(c(&#39;type&#39;,&#39;variable&#39;,&#39;n_missing&#39;,&#39;complete_rate&#39;,&#39;n_unique&#39;,&#39;hist&#39;,&#39;mean&#39;,&#39;sd&#39;,&#39;min&#39;,&#39;p25&#39;,&#39;p50&#39;,&#39;p75&#39;, &#39;max&#39;))
+  dplyr::select(c(&#39;type&#39;,&#39;variable&#39;,&#39;complete_rate&#39;,&#39;n_unique&#39;,&#39;hist&#39;,&#39;mean&#39;,&#39;sd&#39;,&#39;min&#39;,&#39;p25&#39;,&#39;p50&#39;,&#39;p75&#39;, &#39;max&#39;))
 
-skimmed_better %&gt;% 
-  # kable(escape = FALSE) %&gt;%
+skimmed %&gt;% 
   kbl(escape = FALSE) %&gt;%
   kable_paper(&quot;hover&quot;, full_width = F, font_size = 9, fixed_thead = T)</code></pre>
 <table class=" lightable-paper lightable-hover" style="font-size: 9px; font-family: &quot;Arial Narrow&quot;, arial, helvetica, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
@@ -48,9 +88,6 @@ type
 </th>
 <th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
 variable
-</th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
-n_missing
 </th>
 <th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
 complete_rate
@@ -93,9 +130,6 @@ character
 country
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -134,9 +168,6 @@ character
 country_code
 </td>
 <td style="text-align:right;">
-864
-</td>
-<td style="text-align:right;">
 0.86
 </td>
 <td style="text-align:right;">
@@ -169,13 +200,276 @@ NA
 </tr>
 <tr>
 <td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+continent
+</td>
+<td style="text-align:right;">
+0.74
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+region
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+subregion
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+31
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+capital
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+195
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+19
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+indendent
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+18
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+development
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+10
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+least developed
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+NA;
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 numeric
 </td>
 <td style="text-align:left;">
 year
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -216,9 +510,6 @@ numeric
 Cardiovascular diseases (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -255,9 +546,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Cancers (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -298,9 +586,6 @@ numeric
 Respiratory diseases (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -337,9 +622,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Diabetes (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -380,9 +662,6 @@ numeric
 Dementia (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -419,9 +698,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Lower respiratory infections (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -462,9 +738,6 @@ numeric
 Neonatal deaths (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -501,9 +774,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Diarrheal diseases (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -544,9 +814,6 @@ numeric
 Road accidents (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -583,9 +850,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Liver disease (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -626,9 +890,6 @@ numeric
 Tuberculosis (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -665,9 +926,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Kidney disease (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -708,9 +966,6 @@ numeric
 Digestive diseases (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -747,9 +1002,6 @@ numeric
 </td>
 <td style="text-align:left;">
 HIV/AIDS (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -790,9 +1042,6 @@ numeric
 Suicide (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -829,9 +1078,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Malaria (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -872,9 +1118,6 @@ numeric
 Homicide (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -911,9 +1154,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Nutritional deficiencies (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -954,9 +1194,6 @@ numeric
 Meningitis (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -993,9 +1230,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Protein-energy malnutrition (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -1036,9 +1270,6 @@ numeric
 Drowning (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -1075,9 +1306,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Maternal deaths (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -1118,9 +1346,6 @@ numeric
 Parkinson disease (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -1157,9 +1382,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Alcohol disorders (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -1200,9 +1422,6 @@ numeric
 Intestinal infectious diseases (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -1239,9 +1458,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Drug disorders (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -1282,9 +1498,6 @@ numeric
 Hepatitis (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -1321,9 +1534,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Fire (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -1364,9 +1574,6 @@ numeric
 Heat-related (hot and cold exposure) (%)
 </td>
 <td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
 1.00
 </td>
 <td style="text-align:right;">
@@ -1403,9 +1610,6 @@ numeric
 </td>
 <td style="text-align:left;">
 Natural disasters (%)
-</td>
-<td style="text-align:right;">
-0
 </td>
 <td style="text-align:right;">
 1.00
@@ -1446,9 +1650,6 @@ numeric
 Conflict (%)
 </td>
 <td style="text-align:right;">
-1398
-</td>
-<td style="text-align:right;">
 0.77
 </td>
 <td style="text-align:right;">
@@ -1487,9 +1688,6 @@ numeric
 Terrorism (%)
 </td>
 <td style="text-align:right;">
-1398
-</td>
-<td style="text-align:right;">
 0.77
 </td>
 <td style="text-align:right;">
@@ -1522,3 +1720,38 @@ NA
 </tr>
 </tbody>
 </table>
+<p>#todo:</p>
+<ul>
+<li><p>display row and column count in raw data</p></li>
+<li><p>figure out why n_unique shows NA</p></li>
+<li><p>shorten ‘type’</p></li>
+<li><p>investigate <a href="https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Insert_Images_into_Columns">boxplots built in to kableExtra</a>; or sortable tables with <a href="https://rstudio.github.io/DT/">DT</a></p></li>
+<li><p>exclude deaths due to natural disaster, conflict, terrorism as these are <a href="https://ourworldindata.org/is-it-fair-to-compare-terrorism-and-disaster-with-other-causes-of-death">volatile</a></p></li>
+<li><p>make table shorter</p></li>
+</ul>
+</div>
+<div id="cardiovascular-disease" class="section level4">
+<h4>Cardiovascular Disease</h4>
+<p>Dig into CVD. Due to spaces in field names, need back-tic in ggplot function call.</p>
+<pre class="r"><code>dfcvd &lt;- df0 %&gt;%
+  dplyr::select(c(&#39;continent&#39;,&#39;country&#39;,&#39;year&#39;,&#39;Cardiovascular diseases (%)&#39;)) 
+
+pltcvd &lt;- dfcvd %&gt;%
+  filter(!is.na(&#39;continent&#39;)) %&gt;%
+  ggplot(aes(x=year, y =`Cardiovascular diseases (%)`, group=country) ) +
+  # geom_line() +
+
+#   geom_point(aes(y = r) ) +
+  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent) ) +
+  # geom_line(aes(y = LOESS_FIT, color=&quot;loess&quot;) ) 
+#   geom_line(aes(y = SGMT_RT, color=&quot;chgpt sgmt&quot;) ) +
+#   geom_line(aes(y = SGMT_RT + 2*SGMT_SD, color=&quot;chgpt 2sd&quot;) ) +
+#   labs(title = &quot;EED&quot;#, subtitle = &quot;actual = dot, spline = line&quot;, x = &quot;&quot;
+#        ) +
+  facet_wrap(~ continent, scale = &quot;fixed&quot;, shrink=TRUE, ncol = 3, strip.position = &#39;left&#39;) 
+#   scale_x_date(date_labels = &quot;%Y&quot;)
+pltcvd
+## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
+<p><img src="/post/2020-10-20-global-mortality_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+</div>

@@ -1,0 +1,64 @@
+---
+title: gif saver
+author: Phil Roberts
+date: '2020-10-29'
+slug: gif-saver
+categories: []
+tags: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>Start by creating folder called “temp_plots” in working directory</p>
+<pre class="r"><code>#Libraries
+library(ggplot2)
+library(stringr)
+
+#Functions
+save_plot_date &lt;- function(folder = &quot;temp_plots&quot;){
+  ggsave(here::here(paste0(folder,&quot;/plot_&quot;,stringr::str_replace_all(Sys.time(),&quot;:|-| &quot;,&quot;_&quot;),&quot;.png&quot;)))
+}
+ggplot_print_replace &lt;- function(x, ...) {
+  save_plot_date(&quot;temp_plots&quot;)
+  ggplot2:::print.ggplot(x, ...)
+}
+#Replace ggplot print method
+print.ggplot &lt;- ggplot_print_replace</code></pre>
+<pre class="r"><code>ggplot(mtcars, aes(mpg,cyl)) + 
+  geom_point()</code></pre>
+<p><img src="/post/2020-10-29-gif-saver_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(mtcars, aes(mpg,cyl,color = as.character(gear))) +
+  geom_point()</code></pre>
+<p><img src="/post/2020-10-29-gif-saver_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(mtcars, aes(mpg,cyl,color = as.character(gear))) +
+  geom_point() +
+  facet_wrap(~am)</code></pre>
+<p><img src="/post/2020-10-29-gif-saver_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(mtcars, aes(mpg,cyl,color = as.character(gear))) +
+  geom_point() +
+  facet_wrap(~am) +
+  theme_minimal()</code></pre>
+<p><img src="/post/2020-10-29-gif-saver_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(mtcars, aes(mpg,cyl,color = as.character(gear))) +
+  geom_point() +
+  facet_wrap(~am) +
+  theme_minimal() +
+  labs(title = &quot;useless plot to show the feature&quot;)</code></pre>
+<p><img src="/post/2020-10-29-gif-saver_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>#Create gif
+By calling magick from the command line.
+Install pagick from here
+<a href="https://imagemagick.org/script/download.php" class="uri">https://imagemagick.org/script/download.php</a>
+Mac -&gt; <a href="https://imagemagick.org/script/download.php#macosx" class="uri">https://imagemagick.org/script/download.php#macosx</a>
+Windows -&gt; <a href="https://imagemagick.org/script/download.php#windows" class="uri">https://imagemagick.org/script/download.php#windows</a></p>
+<p>If you want the final picture to be shown for longer, just copy paste it multiple times so that it is shown for longer.</p>
+<pre class="r"><code>#Create gif function
+create_gif_from_pic &lt;- function(folder = &quot;temp_plots&quot;, gif_name = &quot;tidytuesday_progresion&quot;){
+  cmd &lt;- paste(glue::glue(&#39;cd {here::here(folder)}&#39;), &quot;&amp;&amp;&quot;,
+    glue::glue(&#39;magick convert -resize 50%  -delay 10 -loop 0 *.png {gif_name}.gif&#39;))
+shell(cmd)
+}
+#Call function
+create_gif_from_pic()</code></pre>
+<p>Gif is created in the temp_plots folder</p>
