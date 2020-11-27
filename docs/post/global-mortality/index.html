@@ -53,6 +53,18 @@ raw &lt;- tt_load(&quot;2018-04-16&quot;)
 ##  Downloading file 1 of 1: `global_mortality.xlsx`
 ## --- Download complete ---
 
+pop_file &lt;- &#39;https://datahub.io/core/population/datapackage.json&#39;
+pop_data &lt;- fromJSON(paste(readLines(pop_file, warn=FALSE), collapse=&quot;&quot;))
+for(i in 1:length(pop_data$resources$datahub$type)){
+  if(pop_data$resources$datahub$type[i]==&#39;derived/csv&#39;){
+    path_to_file = pop_data$resources$path[i]
+    pop &lt;- read.csv(url(path_to_file)) %&gt;%
+      dplyr::select(c(&#39;country_code&#39;=&#39;Country.Code&#39;,
+                      &#39;year&#39;=&#39;Year&#39;,
+                      &#39;population&#39;=&#39;Value&#39;)) 
+  }
+}
+
 # dimensions: comprehensive country codes
 ccc_file &lt;- &#39;https://datahub.io/core/country-codes/datapackage.json&#39;
 ccc_data &lt;- fromJSON(paste(readLines(ccc_file, warn=FALSE), collapse=&quot;&quot;))
@@ -78,6 +90,7 @@ for(i in 1:length(ccc_data$resources$datahub$type)){
 <p>Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() is discouraged, but not sure why. Dataset has a row for each country-year and column for each (n=~30) disease indicating share of deaths due to the disease.</p>
 <pre class="r"><code>df0 &lt;- raw$global_mortality %&gt;%
   left_join(ccc, by=c(&#39;country_code&#39;=&#39;country_code&#39;)) %&gt;%
+  left_join(pop, by=c(&#39;country_code&#39;=&#39;country_code&#39;, &#39;year&#39;=&#39;year&#39;)) %&gt;%
       replace_na(list(Continent_Code=&#39;Smry&#39;, Continent_Name=&#39;Summary&#39;))
 
 skimmed &lt;- df0 %&gt;% 
@@ -1734,6 +1747,44 @@ NA
 NA
 </td>
 </tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+population
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+<td style="text-align:right;">
+32631961.98
+</td>
+<td style="text-align:right;">
+125391437.21
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1605209.50
+</td>
+<td style="text-align:right;">
+6549012.50
+</td>
+<td style="text-align:right;">
+20929650.00
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
 </tbody>
 </table>
 <p>#todo:</p>
@@ -1750,7 +1801,11 @@ NA
 <h4>Cardiovascular Disease</h4>
 <p>Dig into CVD. Due to spaces in field names, need back-tic in ggplot function call.</p>
 <pre class="r"><code>dfcvd &lt;- df0 %&gt;%
-  dplyr::select(c(&#39;continent&#39;,&#39;country&#39;,&#39;year&#39;,&#39;Cardiovascular diseases (%)&#39;)) 
+  dplyr::select(c(&#39;continent&#39;,
+                  &#39;country&#39;,
+                  &#39;year&#39;,
+                  &#39;population&#39;,
+                  &#39;Cardiovascular diseases (%)&#39;)) 
 
 pltcvd &lt;- dfcvd %&gt;%
   filter(!is.na(&#39;continent&#39;)) %&gt;%
@@ -1758,7 +1813,7 @@ pltcvd &lt;- dfcvd %&gt;%
   # geom_line() +
 
 #   geom_point(aes(y = r) ) +
-  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent) ) +
+  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent, size=population) ) +
   # geom_line(aes(y = LOESS_FIT, color=&quot;loess&quot;) ) 
 #   geom_line(aes(y = SGMT_RT, color=&quot;chgpt sgmt&quot;) ) +
 #   geom_line(aes(y = SGMT_RT + 2*SGMT_SD, color=&quot;chgpt 2sd&quot;) ) +

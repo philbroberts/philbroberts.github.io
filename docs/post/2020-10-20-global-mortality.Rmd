@@ -55,6 +55,18 @@ Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not s
 # facts
 raw <- tt_load("2018-04-16")
 
+pop_file <- 'https://datahub.io/core/population/datapackage.json'
+pop_data <- fromJSON(paste(readLines(pop_file, warn=FALSE), collapse=""))
+for(i in 1:length(pop_data$resources$datahub$type)){
+  if(pop_data$resources$datahub$type[i]=='derived/csv'){
+    path_to_file = pop_data$resources$path[i]
+    pop <- read.csv(url(path_to_file)) %>%
+      dplyr::select(c('country_code'='Country.Code',
+                      'year'='Year',
+                      'population'='Value')) 
+  }
+}
+
 # dimensions: comprehensive country codes
 ccc_file <- 'https://datahub.io/core/country-codes/datapackage.json'
 ccc_data <- fromJSON(paste(readLines(ccc_file, warn=FALSE), collapse=""))
@@ -83,6 +95,7 @@ Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() i
 ```{r results='asis'}
 df0 <- raw$global_mortality %>%
   left_join(ccc, by=c('country_code'='country_code')) %>%
+  left_join(pop, by=c('country_code'='country_code', 'year'='year')) %>%
       replace_na(list(Continent_Code='Smry', Continent_Name='Summary'))
 
 skimmed <- df0 %>% 
@@ -123,7 +136,11 @@ Dig into CVD. Due to spaces in field names, need back-tic in ggplot function cal
 
 ```{r results='asis'}
 dfcvd <- df0 %>%
-  dplyr::select(c('continent','country','year','Cardiovascular diseases (%)')) 
+  dplyr::select(c('continent',
+                  'country',
+                  'year',
+                  'population',
+                  'Cardiovascular diseases (%)')) 
 
 pltcvd <- dfcvd %>%
   filter(!is.na('continent')) %>%
@@ -131,7 +148,7 @@ pltcvd <- dfcvd %>%
   # geom_line() +
 
 #   geom_point(aes(y = r) ) +
-  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent) ) +
+  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent, size=population) ) +
   # geom_line(aes(y = LOESS_FIT, color="loess") ) 
 #   geom_line(aes(y = SGMT_RT, color="chgpt sgmt") ) +
 #   geom_line(aes(y = SGMT_RT + 2*SGMT_SD, color="chgpt 2sd") ) +
