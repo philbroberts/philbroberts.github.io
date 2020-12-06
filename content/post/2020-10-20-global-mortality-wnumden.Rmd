@@ -1,9 +1,9 @@
 ---
-title: Global Mortality
+title: Global Mortality Revisited
 author: Phil Roberts
 date: '2018-04-16'
 draft: true
-slug: global-mortality
+slug: global-mortality-revisited
 categories:
   - Tidy Tuesday
 tags:
