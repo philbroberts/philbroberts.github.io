@@ -171,7 +171,11 @@ pltcvd2 <- dfcvd2 %>%
   geom_histogram()
 
 pltcvd2
+```
 
+kernel density
+
+```{r results='asis'}
 ggplot(dfcvd2, aes(`Cardiovascular diseases (%)`, after_stat(density), colour = continent)) +
   geom_density()
 ```
