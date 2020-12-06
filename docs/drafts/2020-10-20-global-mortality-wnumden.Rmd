@@ -158,3 +158,96 @@ pltcvd <- dfcvd %>%
 pltcvd
 ```
 
+## Numerators and Denominators - GHDx
+
+source: <http://ghdx.healthdata.org/gbd-results-tool>
+
+```{r results='asis'}
+IHME0 <-
+  list.files(path='../../data/', pattern = 'IHME-GBD_2019_DATA-689c8af3*', full.names = TRUE) %>%
+  map_df(~read_csv(.))
+
+IHMEcodes <- read_csv("../../data/IHME_GBD_2019_CODEBOOK_Y2020M11D25.CSV")
+IHMEmeasure <- dplyr::select(IHMEcodes,c('measure_id','measure_name')) %>%
+  filter(!is.na(as.numeric(measure_id))) %>%
+  mutate('measure_id' = as.numeric(measure_id))
+IHMElocation <- dplyr::select(IHMEcodes,c('location_id','location_name')) %>%
+  filter(!is.na(as.numeric(location_id))) %>%
+  mutate('location_id' = as.numeric(location_id))
+IHMEsex <- dplyr::select(IHMEcodes,c('sex_id','sex_label')) %>%
+  filter(!is.na(as.numeric(sex_id))) %>%
+  mutate('sex_id' = as.numeric(sex_id))
+IHMEage <- dplyr::select(IHMEcodes,c('age_group_id','age_group_name')) %>%
+  filter(!is.na(as.numeric(age_group_id))) %>%
+  mutate('age_group_id' = as.numeric(age_group_id))
+IHMEcause <- dplyr::select(IHMEcodes,c('cause_id','cause_name')) %>%
+  filter(!is.na(as.numeric(cause_id))) %>%
+  mutate('cause_id' = as.numeric(cause_id))
+# IHMErei <- dplyr::select(IHMEcodes,c('rei_id','rei_name')) %>%
+#   filter(!is.na(as.numeric(rei_id))) %>%
+#   mutate('rei_id' = as.numeric(rei_id))
+IHMEmetric <- dplyr::select(IHMEcodes,c('metric_id','metric_name')) %>%
+  filter(!is.na(as.numeric(metric_id))) %>%
+  mutate('metric_id' = as.numeric(metric_id))
+
+IHME1 <- IHME0 %>%
+  left_join(IHMEmeasure,  by=c('measure' ='measure_id')) %>%
+  left_join(IHMElocation, by=c('location'='location_id')) %>%
+  left_join(IHMEsex,      by=c('sex'     ='sex_id')) %>%
+  left_join(IHMEage,      by=c('age'     ='age_group_id')) %>%
+  left_join(IHMEcause,    by=c('cause'   ='cause_id')) %>%
+  left_join(IHMEmetric,   by=c('metric'  ='metric_id'))
+```
+
+```{r}
+IHMEnum <- IHME0 %>%
+  filter(metric == 1) %>% #metric_id 1 is number
+  dplyr::select(c(
+    measure,
+    # measure_name,
+    location,
+    # location_name,
+    sex,
+    # sex_name,
+    age,
+    # age_name,
+    cause,
+    # cause_name,
+    year,
+    'number'=val
+  ))
+
+IHMErate <- IHME0 %>%
+  filter(metric == 3) %>% #metric_id 3 is rate
+  dplyr::select(c(
+    measure,
+    location,
+    sex,
+    age,
+    cause,
+    year,
+    'rate'=val,
+    'rate_upper'=upper,
+    'rate_lower'=lower
+  ))
+
+IHME1 <- IHMEnum %>%
+  inner_join(IHMErate, by = c('measure','location','sex','age','cause','year'))
+
+skmIHME <- IHME1 %>% 
+  skim() %>%  #histogram workaround from https://github.com/ropensci/skimr/issues/278
+  rowwise() %>%
+  dplyr::mutate(hist = 
+     numeric.hist %>% 
+     utf8ToInt() %>% 
+     as.character() %>% 
+     paste0("&#", . ,";", collapse = "")) %>%
+  dplyr::select(-numeric.hist) %>%
+  dplyr::rename_with(~ tolower(gsub("skim_|numeric.|character.", "", .x, fixed = FALSE))) %>%
+  mutate_if(is.numeric, round, digits=2) #%>%
+  # dplyr::select(c('type','variable','complete_rate','n_unique','hist','mean','sd','min','p25','p50','p75', 'max'))
+
+skmIHME %>% 
+  kbl(escape = FALSE) %>%
+  kable_paper("hover", full_width = F, font_size = 9, fixed_thead = T)
+```

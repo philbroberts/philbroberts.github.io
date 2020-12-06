@@ -20,6 +20,8 @@ library(skimr)
 library(kableExtra) #https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
 library(stringr)
 library(jsonlite) #for continents: https://datahub.io/core/country-codes#r
+library(readr)
+library(purrr) #to handle multiple input file
 ```
 
 ```{r functions, include=FALSE}
@@ -37,6 +39,8 @@ print.ggplot <- ggplot_print_replace
 
 # Global Mortality - Causes and Trends
 
+## Our World in Data - rates
+
 #### Background
 
 [Our World in Data](https://ourworldindata.org/what-does-the-world-die-from) asked 'what does the world die from?':
@@ -49,7 +53,7 @@ print.ggplot <- ggplot_print_replace
 
 #### Get data
 
-Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to *not* manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it's ok. Also, grab countinent lookup table.
+Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to *not* manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it's ok. Also, grab countinent lookup table. Underlying source is <http://ghdx.healthdata.org/> (University of Washington, part of Institute for Health Metrics and Evaluation IHME).
 
 ```{r}
 # facts
@@ -135,26 +139,22 @@ skimmed %>%
 Dig into CVD. Due to spaces in field names, need back-tic in ggplot function call.
 
 ```{r results='asis'}
+#todo learn how to pull out 'Cardiovascular diseases (%)' to define once
+# perhaps define this whole chunk as a function using tidy evalutation: https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/
 dfcvd <- df0 %>%
   dplyr::select(c('continent',
                   'country',
                   'year',
                   'population',
-                  'Cardiovascular diseases (%)')) 
+                  'Cardiovascular diseases (%)')) %>%
+  mutate('deaths' = round(population * `Cardiovascular diseases (%)` / 100) )
 
 pltcvd <- dfcvd %>%
   filter(!is.na('continent')) %>%
   ggplot(aes(x=year, y =`Cardiovascular diseases (%)`, group=country) ) +
-  # geom_line() +
-
-#   geom_point(aes(y = r) ) +
-  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent, size=population) ) +
-  # geom_line(aes(y = LOESS_FIT, color="loess") ) 
-#   geom_line(aes(y = SGMT_RT, color="chgpt sgmt") ) +
-#   geom_line(aes(y = SGMT_RT + 2*SGMT_SD, color="chgpt 2sd") ) +
-#   labs(title = "EED"#, subtitle = "actual = dot, spline = line", x = ""
-#        ) +
+  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent) ) +
   facet_wrap(~ continent, scale = "fixed", shrink=TRUE, ncol = 3, strip.position = 'left') 
 #   scale_x_date(date_labels = "%Y")
 pltcvd
 ```
+

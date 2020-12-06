@@ -42,6 +42,8 @@
 
 <div id="global-mortality---causes-and-trends" class="section level1">
 <h1>Global Mortality - Causes and Trends</h1>
+<div id="our-world-in-data---rates" class="section level2">
+<h2>Our World in Data - rates</h2>
 <div id="background" class="section level4">
 <h4>Background</h4>
 <p><a href="https://ourworldindata.org/what-does-the-world-die-from">Our World in Data</a> asked ‘what does the world die from?’:</p>
@@ -53,7 +55,7 @@
 </div>
 <div id="get-data" class="section level4">
 <h4>Get data</h4>
-<p>Load data from github tidy tuesday repo. Use the tidytuesdayR package. I’m not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to <em>not</em> manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it’s ok. Also, grab countinent lookup table.</p>
+<p>Load data from github tidy tuesday repo. Use the tidytuesdayR package. I’m not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to <em>not</em> manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it’s ok. Also, grab countinent lookup table. Underlying source is <a href="http://ghdx.healthdata.org/" class="uri">http://ghdx.healthdata.org/</a> (University of Washington, part of Institute for Health Metrics and Evaluation IHME).</p>
 <pre class="r"><code># facts
 raw &lt;- tt_load(&quot;2018-04-16&quot;)
 ## --- Compiling #TidyTuesday Information for 2018-04-16 ----
@@ -1810,30 +1812,911 @@ NA
 <div id="cardiovascular-disease" class="section level4">
 <h4>Cardiovascular Disease</h4>
 <p>Dig into CVD. Due to spaces in field names, need back-tic in ggplot function call.</p>
-<pre class="r"><code>dfcvd &lt;- df0 %&gt;%
+<pre class="r"><code>#todo learn how to pull out &#39;Cardiovascular diseases (%)&#39; to define once
+# perhaps define this whole chunk as a function using tidy evalutation: https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/
+dfcvd &lt;- df0 %&gt;%
   dplyr::select(c(&#39;continent&#39;,
                   &#39;country&#39;,
                   &#39;year&#39;,
                   &#39;population&#39;,
-                  &#39;Cardiovascular diseases (%)&#39;)) 
+                  &#39;Cardiovascular diseases (%)&#39;)) %&gt;%
+  mutate(&#39;deaths&#39; = round(population * `Cardiovascular diseases (%)` / 100) )
 
 pltcvd &lt;- dfcvd %&gt;%
   filter(!is.na(&#39;continent&#39;)) %&gt;%
   ggplot(aes(x=year, y =`Cardiovascular diseases (%)`, group=country) ) +
-  # geom_line() +
-
-#   geom_point(aes(y = r) ) +
-  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent, size=population) ) +
-  # geom_line(aes(y = LOESS_FIT, color=&quot;loess&quot;) ) 
-#   geom_line(aes(y = SGMT_RT, color=&quot;chgpt sgmt&quot;) ) +
-#   geom_line(aes(y = SGMT_RT + 2*SGMT_SD, color=&quot;chgpt 2sd&quot;) ) +
-#   labs(title = &quot;EED&quot;#, subtitle = &quot;actual = dot, spline = line&quot;, x = &quot;&quot;
-#        ) +
+  geom_smooth(aes(y =`Cardiovascular diseases (%)`, color=continent) ) +
   facet_wrap(~ continent, scale = &quot;fixed&quot;, shrink=TRUE, ncol = 3, strip.position = &#39;left&#39;) 
 #   scale_x_date(date_labels = &quot;%Y&quot;)
 pltcvd
 ## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
-<p><img src="/post/2020-10-20-global-mortality_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="/post/2020-10-20-global-mortality-wnumden_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+</div>
+<div id="numerators-and-denominators---ghdx" class="section level2">
+<h2>Numerators and Denominators - GHDx</h2>
+<p>source: <a href="http://ghdx.healthdata.org/gbd-results-tool" class="uri">http://ghdx.healthdata.org/gbd-results-tool</a></p>
+<pre class="r"><code>IHME0 &lt;-
+  list.files(path=&#39;../../data/&#39;, pattern = &#39;IHME-GBD_2019_DATA-689c8af3*&#39;, full.names = TRUE) %&gt;%
+  map_df(~read_csv(.))
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+## 
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   measure = col_double(),
+##   location = col_double(),
+##   sex = col_double(),
+##   age = col_double(),
+##   cause = col_double(),
+##   metric = col_double(),
+##   year = col_double(),
+##   val = col_double(),
+##   upper = col_double(),
+##   lower = col_double()
+## )
+
+IHMEcodes &lt;- read_csv(&quot;../../data/IHME_GBD_2019_CODEBOOK_Y2020M11D25.CSV&quot;)
+## 
+## -- Column specification --------------------------------------------------------
+## cols(
+##   `Variable:` = col_character(),
+##   measure_id = col_character(),
+##   measure_name = col_character(),
+##   location_id = col_character(),
+##   location_name = col_character(),
+##   sex_id = col_character(),
+##   sex_label = col_character(),
+##   age_group_id = col_character(),
+##   age_group_name = col_character(),
+##   cause_id = col_character(),
+##   cause_name = col_character(),
+##   rei_id = col_character(),
+##   rei_name = col_character(),
+##   metric_id = col_character(),
+##   metric_name = col_character(),
+##   year_id = col_character(),
+##   val = col_character(),
+##   upper = col_character(),
+##   lower = col_character()
+## )
+IHMEmeasure &lt;- dplyr::select(IHMEcodes,c(&#39;measure_id&#39;,&#39;measure_name&#39;)) %&gt;%
+  filter(!is.na(as.numeric(measure_id))) %&gt;%
+  mutate(&#39;measure_id&#39; = as.numeric(measure_id))
+## Warning in mask$eval_all_filter(dots, env_filter): NAs introduced by coercion
+IHMElocation &lt;- dplyr::select(IHMEcodes,c(&#39;location_id&#39;,&#39;location_name&#39;)) %&gt;%
+  filter(!is.na(as.numeric(location_id))) %&gt;%
+  mutate(&#39;location_id&#39; = as.numeric(location_id))
+## Warning in mask$eval_all_filter(dots, env_filter): NAs introduced by coercion
+IHMEsex &lt;- dplyr::select(IHMEcodes,c(&#39;sex_id&#39;,&#39;sex_label&#39;)) %&gt;%
+  filter(!is.na(as.numeric(sex_id))) %&gt;%
+  mutate(&#39;sex_id&#39; = as.numeric(sex_id))
+## Warning in mask$eval_all_filter(dots, env_filter): NAs introduced by coercion
+IHMEage &lt;- dplyr::select(IHMEcodes,c(&#39;age_group_id&#39;,&#39;age_group_name&#39;)) %&gt;%
+  filter(!is.na(as.numeric(age_group_id))) %&gt;%
+  mutate(&#39;age_group_id&#39; = as.numeric(age_group_id))
+## Warning in mask$eval_all_filter(dots, env_filter): NAs introduced by coercion
+IHMEcause &lt;- dplyr::select(IHMEcodes,c(&#39;cause_id&#39;,&#39;cause_name&#39;)) %&gt;%
+  filter(!is.na(as.numeric(cause_id))) %&gt;%
+  mutate(&#39;cause_id&#39; = as.numeric(cause_id))
+## Warning in mask$eval_all_filter(dots, env_filter): NAs introduced by coercion
+# IHMErei &lt;- dplyr::select(IHMEcodes,c(&#39;rei_id&#39;,&#39;rei_name&#39;)) %&gt;%
+#   filter(!is.na(as.numeric(rei_id))) %&gt;%
+#   mutate(&#39;rei_id&#39; = as.numeric(rei_id))
+IHMEmetric &lt;- dplyr::select(IHMEcodes,c(&#39;metric_id&#39;,&#39;metric_name&#39;)) %&gt;%
+  filter(!is.na(as.numeric(metric_id))) %&gt;%
+  mutate(&#39;metric_id&#39; = as.numeric(metric_id))
+## Warning in mask$eval_all_filter(dots, env_filter): NAs introduced by coercion
+
+IHME1 &lt;- IHME0 %&gt;%
+  left_join(IHMEmeasure,  by=c(&#39;measure&#39; =&#39;measure_id&#39;)) %&gt;%
+  left_join(IHMElocation, by=c(&#39;location&#39;=&#39;location_id&#39;)) %&gt;%
+  left_join(IHMEsex,      by=c(&#39;sex&#39;     =&#39;sex_id&#39;)) %&gt;%
+  left_join(IHMEage,      by=c(&#39;age&#39;     =&#39;age_group_id&#39;)) %&gt;%
+  left_join(IHMEcause,    by=c(&#39;cause&#39;   =&#39;cause_id&#39;)) %&gt;%
+  left_join(IHMEmetric,   by=c(&#39;metric&#39;  =&#39;metric_id&#39;))</code></pre>
+<pre class="r"><code>IHMEnum &lt;- IHME0 %&gt;%
+  filter(metric == 1) %&gt;% #metric_id 1 is number
+  dplyr::select(c(
+    measure,
+    # measure_name,
+    location,
+    # location_name,
+    sex,
+    # sex_name,
+    age,
+    # age_name,
+    cause,
+    # cause_name,
+    year,
+    &#39;number&#39;=val
+  ))
+
+IHMErate &lt;- IHME0 %&gt;%
+  filter(metric == 3) %&gt;% #metric_id 3 is rate
+  dplyr::select(c(
+    measure,
+    location,
+    sex,
+    age,
+    cause,
+    year,
+    &#39;rate&#39;=val,
+    &#39;rate_upper&#39;=upper,
+    &#39;rate_lower&#39;=lower
+  ))
+
+IHME1 &lt;- IHMEnum %&gt;%
+  inner_join(IHMErate, by = c(&#39;measure&#39;,&#39;location&#39;,&#39;sex&#39;,&#39;age&#39;,&#39;cause&#39;,&#39;year&#39;))
+
+skmIHME &lt;- IHME1 %&gt;% 
+  skim() %&gt;%  #histogram workaround from https://github.com/ropensci/skimr/issues/278
+  rowwise() %&gt;%
+  dplyr::mutate(hist = 
+     numeric.hist %&gt;% 
+     utf8ToInt() %&gt;% 
+     as.character() %&gt;% 
+     paste0(&quot;&amp;#&quot;, . ,&quot;;&quot;, collapse = &quot;&quot;)) %&gt;%
+  dplyr::select(-numeric.hist) %&gt;%
+  dplyr::rename_with(~ tolower(gsub(&quot;skim_|numeric.|character.&quot;, &quot;&quot;, .x, fixed = FALSE))) %&gt;%
+  mutate_if(is.numeric, round, digits=2) #%&gt;%
+  # dplyr::select(c(&#39;type&#39;,&#39;variable&#39;,&#39;complete_rate&#39;,&#39;n_unique&#39;,&#39;hist&#39;,&#39;mean&#39;,&#39;sd&#39;,&#39;min&#39;,&#39;p25&#39;,&#39;p50&#39;,&#39;p75&#39;, &#39;max&#39;))
+
+skmIHME %&gt;% 
+  kbl(escape = FALSE) %&gt;%
+  kable_paper(&quot;hover&quot;, full_width = F, font_size = 9, fixed_thead = T)</code></pre>
+<table class=" lightable-paper lightable-hover" style="font-size: 9px; font-family: &quot;Arial Narrow&quot;, arial, helvetica, sans-serif; width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+type
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+variable
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+n_missing
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+complete_rate
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+mean
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+sd
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p0
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p25
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p50
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p75
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+p100
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+hist
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+measure
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2.50
+</td>
+<td style="text-align:right;">
+1.50
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+2.50
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+▇▁▁▁▇
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+location
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+17706.54
+</td>
+<td style="text-align:right;">
+19966.69
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+171.00
+</td>
+<td style="text-align:right;">
+4710.00
+</td>
+<td style="text-align:right;">
+44566.00
+</td>
+<td style="text-align:right;">
+44792
+</td>
+<td style="text-align:left;">
+▇▁▁▂▃
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+sex
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2.00
+</td>
+<td style="text-align:right;">
+0.82
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+2.00
+</td>
+<td style="text-align:right;">
+3.00
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+▇▁▇▁▇
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+age
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+20.52
+</td>
+<td style="text-align:right;">
+8.37
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+22.00
+</td>
+<td style="text-align:right;">
+24.00
+</td>
+<td style="text-align:right;">
+25.00
+</td>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:left;">
+▂▁▁▁▇
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+cause
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+711.17
+</td>
+<td style="text-align:right;">
+324.22
+</td>
+<td style="text-align:right;">
+294
+</td>
+<td style="text-align:right;">
+295.00
+</td>
+<td style="text-align:right;">
+687.00
+</td>
+<td style="text-align:right;">
+1027.00
+</td>
+<td style="text-align:right;">
+1029
+</td>
+<td style="text-align:left;">
+▆▁▂▁▇
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+year
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2004.50
+</td>
+<td style="text-align:right;">
+8.66
+</td>
+<td style="text-align:right;">
+1990
+</td>
+<td style="text-align:right;">
+1997.00
+</td>
+<td style="text-align:right;">
+2004.50
+</td>
+<td style="text-align:right;">
+2012.00
+</td>
+<td style="text-align:right;">
+2019
+</td>
+<td style="text-align:left;">
+▇▇▇▇▇
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+number
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1331416.57
+</td>
+<td style="text-align:right;">
+20623248.53
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+29.52
+</td>
+<td style="text-align:right;">
+615.08
+</td>
+<td style="text-align:right;">
+11211.62
+</td>
+<td style="text-align:right;">
+2081079335
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+rate
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5665.34
+</td>
+<td style="text-align:right;">
+20090.00
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+16.05
+</td>
+<td style="text-align:right;">
+185.88
+</td>
+<td style="text-align:right;">
+1785.70
+</td>
+<td style="text-align:right;">
+1490031
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+rate_upper
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6402.04
+</td>
+<td style="text-align:right;">
+22622.17
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+21.12
+</td>
+<td style="text-align:right;">
+230.33
+</td>
+<td style="text-align:right;">
+2115.00
+</td>
+<td style="text-align:right;">
+2140554
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+rate_lower
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5012.93
+</td>
+<td style="text-align:right;">
+17934.26
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+11.70
+</td>
+<td style="text-align:right;">
+144.42
+</td>
+<td style="text-align:right;">
+1509.14
+</td>
+<td style="text-align:right;">
+1065218
+</td>
+<td style="text-align:left;">
+▇▁▁▁▁
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
