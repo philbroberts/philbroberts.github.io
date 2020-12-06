@@ -39,7 +39,7 @@ print.ggplot <- ggplot_print_replace
 
 # Global Mortality - Causes and Trends
 
-## Our World in Data - rates
+## Our World in Data
 
 #### Background
 
@@ -53,7 +53,7 @@ print.ggplot <- ggplot_print_replace
 
 #### Get data
 
-Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to *not* manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it's ok. Also, grab countinent lookup table. Underlying source is <http://ghdx.healthdata.org/> (University of Washington, part of Institute for Health Metrics and Evaluation IHME).
+Load data from github tidy tuesday repo. Use the tidytuesdayR package. I'm not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to *not* manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it's ok. Grab numerators from here: <http://ghdx.healthdata.org/record/ihme-data/gbd-2019-mortality-estimates-1950-2019.> Also, grab countinent lookup table. Underlying source is <http://ghdx.healthdata.org/> (University of Washington, part of Institute for Health Metrics and Evaluation IHME, appears data is licensed for non-commercial).
 
 ```{r}
 # facts
@@ -94,7 +94,9 @@ for(i in 1:length(ccc_data$resources$datahub$type)){
 
 #### Preview data
 
-Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() is discouraged, but not sure why. Dataset has a row for each country-year and column for each (n=\~30) disease indicating share of deaths due to the disease.
+Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() is discouraged, but not sure why. Histogram workaround from <https://github.com/ropensci/skimr/issues/278.>
+
+Dataset has a row for each country-year and column for each (n=\~30) disease indicating share of deaths due to the disease.
 
 ```{r results='asis'}
 df0 <- raw$global_mortality %>%
@@ -136,7 +138,7 @@ skimmed %>%
 
 #### Cardiovascular Disease
 
-Dig into CVD. Due to spaces in field names, need back-tic in ggplot function call.
+CVDs seems to have broad distribution, let's dig into that. Due to spaces in field names, need back-tic in ggplot function call. Glimpse the trends:
 
 ```{r results='asis'}
 #todo learn how to pull out 'Cardiovascular diseases (%)' to define once
@@ -158,3 +160,18 @@ pltcvd <- dfcvd %>%
 pltcvd
 ```
 
+What about distribution:
+
+```{r results='asis'}
+dfcvd2 <- dfcvd %>%
+  filter(year>=2010) 
+  
+pltcvd2 <- dfcvd2 %>%
+  ggplot(aes(`Cardiovascular diseases (%)`, fill=continent)) +
+  geom_histogram()
+
+pltcvd2
+
+ggplot(dfcvd2, aes(`Cardiovascular diseases (%)`, after_stat(density), colour = continent)) +
+  geom_density()
+```

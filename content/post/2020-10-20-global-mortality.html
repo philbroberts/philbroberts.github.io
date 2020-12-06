@@ -16,8 +16,8 @@ tags:
 
 <div id="global-mortality---causes-and-trends" class="section level1">
 <h1>Global Mortality - Causes and Trends</h1>
-<div id="our-world-in-data---rates" class="section level2">
-<h2>Our World in Data - rates</h2>
+<div id="our-world-in-data" class="section level2">
+<h2>Our World in Data</h2>
 <div id="background" class="section level4">
 <h4>Background</h4>
 <p><a href="https://ourworldindata.org/what-does-the-world-die-from">Our World in Data</a> asked ‘what does the world die from?’:</p>
@@ -29,7 +29,7 @@ tags:
 </div>
 <div id="get-data" class="section level4">
 <h4>Get data</h4>
-<p>Load data from github tidy tuesday repo. Use the tidytuesdayR package. I’m not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to <em>not</em> manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it’s ok. Also, grab countinent lookup table. Underlying source is <a href="http://ghdx.healthdata.org/" class="uri">http://ghdx.healthdata.org/</a> (University of Washington, part of Institute for Health Metrics and Evaluation IHME).</p>
+<p>Load data from github tidy tuesday repo. Use the tidytuesdayR package. I’m not sure of the etiquette here. Seems wrong to download the data every time. However, my goal is to <em>not</em> manually download the data. I tried several other approaches, but could not find a better approach. I suppose if I only download a few times it’s ok. Grab numerators from here: <a href="http://ghdx.healthdata.org/record/ihme-data/gbd-2019-mortality-estimates-1950-2019." class="uri">http://ghdx.healthdata.org/record/ihme-data/gbd-2019-mortality-estimates-1950-2019.</a> Also, grab countinent lookup table. Underlying source is <a href="http://ghdx.healthdata.org/" class="uri">http://ghdx.healthdata.org/</a> (University of Washington, part of Institute for Health Metrics and Evaluation IHME, appears data is licensed for non-commercial).</p>
 <pre class="r"><code># facts
 raw &lt;- tt_load(&quot;2018-04-16&quot;)
 ## --- Compiling #TidyTuesday Information for 2018-04-16 ----
@@ -73,7 +73,8 @@ for(i in 1:length(ccc_data$resources$datahub$type)){
 </div>
 <div id="preview-data" class="section level4">
 <h4>Preview data</h4>
-<p>Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() is discouraged, but not sure why. Dataset has a row for each country-year and column for each (n=~30) disease indicating share of deaths due to the disease.</p>
+<p>Use skimr to skim data. Use kableExtra to make pretty table. I think rowwise() is discouraged, but not sure why. Histogram workaround from <a href="https://github.com/ropensci/skimr/issues/278." class="uri">https://github.com/ropensci/skimr/issues/278.</a></p>
+<p>Dataset has a row for each country-year and column for each (n=~30) disease indicating share of deaths due to the disease.</p>
 <pre class="r"><code>df0 &lt;- raw$global_mortality %&gt;%
   left_join(ccc, by=c(&#39;country_code&#39;=&#39;country_code&#39;)) %&gt;%
   left_join(pop, by=c(&#39;country_code&#39;=&#39;country_code&#39;, &#39;year&#39;=&#39;year&#39;)) %&gt;%
@@ -1785,7 +1786,7 @@ NA
 </div>
 <div id="cardiovascular-disease" class="section level4">
 <h4>Cardiovascular Disease</h4>
-<p>Dig into CVD. Due to spaces in field names, need back-tic in ggplot function call.</p>
+<p>CVDs seems to have broad distribution, let’s dig into that. Due to spaces in field names, need back-tic in ggplot function call. Glimpse the trends:</p>
 <pre class="r"><code>#todo learn how to pull out &#39;Cardiovascular diseases (%)&#39; to define once
 # perhaps define this whole chunk as a function using tidy evalutation: https://www.tidyverse.org/blog/2019/06/rlang-0-4-0/
 dfcvd &lt;- df0 %&gt;%
@@ -1805,6 +1806,21 @@ pltcvd &lt;- dfcvd %&gt;%
 pltcvd
 ## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
 <p><img src="/post/2020-10-20-global-mortality_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>What about distribution:</p>
+<pre class="r"><code>dfcvd2 &lt;- dfcvd %&gt;%
+  filter(year&gt;=2010) 
+  
+pltcvd2 &lt;- dfcvd2 %&gt;%
+  ggplot(aes(`Cardiovascular diseases (%)`, fill=continent)) +
+  geom_histogram()
+
+pltcvd2
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/post/2020-10-20-global-mortality_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>
+ggplot(dfcvd2, aes(`Cardiovascular diseases (%)`, after_stat(density), colour = continent)) +
+  geom_density()</code></pre>
+<p><img src="/post/2020-10-20-global-mortality_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
 </div>
 </div>
 </div>
