@@ -1,8 +1,0 @@
----
-title: test new post
-author: Phil Roberts
-date: '2020-10-15'
-slug: test-new-post
-categories: []
-tags: []
----
