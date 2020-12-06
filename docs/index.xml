@@ -2,49 +2,38 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Home on My New Hugo Site</title>
-    <link>/</link>
+    <link>http://example.org/</link>
     <description>Recent content in Home on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 29 Oct 2020 00:00:00 +0000</lastBuildDate><atom:link href="/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 29 Oct 2020 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>gif saver</title>
-      <link>/post/gif-saver/</link>
+      <link>http://example.org/post/gif-saver/</link>
       <pubDate>Thu, 29 Oct 2020 00:00:00 +0000</pubDate>
       
-      <guid>/post/gif-saver/</guid>
+      <guid>http://example.org/post/gif-saver/</guid>
       <description>Start by creating folder called “temp_plots” in working directory
 #Librarieslibrary(ggplot2)library(stringr)#Functionssave_plot_date &amp;lt;- function(folder = &amp;quot;temp_plots&amp;quot;){ggsave(here::here(paste0(folder,&amp;quot;/plot_&amp;quot;,stringr::str_replace_all(Sys.time(),&amp;quot;:|-| &amp;quot;,&amp;quot;_&amp;quot;),&amp;quot;.png&amp;quot;)))}ggplot_print_replace &amp;lt;- function(x, ...) {save_plot_date(&amp;quot;temp_plots&amp;quot;)ggplot2:::print.ggplot(x, ...)}#Replace ggplot print methodprint.ggplot &amp;lt;- ggplot_print_replaceggplot(mtcars, aes(mpg,cyl)) + geom_point()ggplot(mtcars, aes(mpg,cyl,color = as.character(gear))) +geom_point()ggplot(mtcars, aes(mpg,cyl,color = as.character(gear))) +geom_point() +facet_wrap(~am)ggplot(mtcars, aes(mpg,cyl,color = as.character(gear))) +geom_point() +facet_wrap(~am) +theme_minimal()ggplot(mtcars, aes(mpg,cyl,color = as.</description>
     </item>
     
     <item>
       <title>Global Mortality</title>
-      <link>/post/global-mortality/</link>
+      <link>http://example.org/post/global-mortality/</link>
       <pubDate>Mon, 16 Apr 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/global-mortality/</guid>
+      <guid>http://example.org/post/global-mortality/</guid>
       <description>Global Mortality - Causes and TrendsOur World in DataBackgroundOur World in Data asked ‘what does the world die from?’:
 In 2017, around 56 million people died – nearly half of these were aged 70 years or older; 27% aged 50-69; 14% aged 15-49; only 1% aged 5-14; and around 10% were children under the age of 5.
 The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a range of diseases that affect the heart and blood vessels…Cardiovascular diseases were responsible for around one-third of all deaths.</description>
     </item>
     
     <item>
-      <title>Global Mortality Revisited</title>
-      <link>/post/global-mortality-revisited/</link>
-      <pubDate>Mon, 16 Apr 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/post/global-mortality-revisited/</guid>
-      <description>Global Mortality - Causes and TrendsOur World in Data - ratesBackgroundOur World in Data asked ‘what does the world die from?’:
-In 2017, around 56 million people died – nearly half of these were aged 70 years or older; 27% aged 50-69; 14% aged 15-49; only 1% aged 5-14; and around 10% were children under the age of 5.
-The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a range of diseases that affect the heart and blood vessels…Cardiovascular diseases were responsible for around one-third of all deaths.</description>
-    </item>
-    
-    <item>
       <title>About Hugo XMin</title>
-      <link>/about/</link>
+      <link>http://example.org/about/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       
-      <guid>/about/</guid>
+      <guid>http://example.org/about/</guid>
       <description>XMin is the first Hugo theme I have designed. The original reason that I wrote it was I needed a minimal example of Hugo themes when I was writing the blogdown book. Basically I wanted a simple theme that supports a navigation menu, a home page, other single pages, lists of pages, blog posts, categories, tags, and RSS. That is all. Nothing fancy. In terms of CSS and JavaScript, I really want to keep them minimal.</description>
     </item>
     

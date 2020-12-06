@@ -2,29 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Health on My New Hugo Site</title>
-    <link>/tags/health/</link>
+    <link>http://example.org/tags/health/</link>
     <description>Recent content in Health on My New Hugo Site</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 16 Apr 2018 00:00:00 +0000</lastBuildDate><atom:link href="/tags/health/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 16 Apr 2018 00:00:00 +0000</lastBuildDate><atom:link href="http://example.org/tags/health/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Global Mortality</title>
-      <link>/post/global-mortality/</link>
+      <link>http://example.org/post/global-mortality/</link>
       <pubDate>Mon, 16 Apr 2018 00:00:00 +0000</pubDate>
       
-      <guid>/post/global-mortality/</guid>
+      <guid>http://example.org/post/global-mortality/</guid>
       <description>Global Mortality - Causes and TrendsOur World in DataBackgroundOur World in Data asked ‘what does the world die from?’:
-In 2017, around 56 million people died – nearly half of these were aged 70 years or older; 27% aged 50-69; 14% aged 15-49; only 1% aged 5-14; and around 10% were children under the age of 5.
-The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a range of diseases that affect the heart and blood vessels…Cardiovascular diseases were responsible for around one-third of all deaths.</description>
-    </item>
-    
-    <item>
-      <title>Global Mortality Revisited</title>
-      <link>/post/global-mortality-revisited/</link>
-      <pubDate>Mon, 16 Apr 2018 00:00:00 +0000</pubDate>
-      
-      <guid>/post/global-mortality-revisited/</guid>
-      <description>Global Mortality - Causes and TrendsOur World in Data - ratesBackgroundOur World in Data asked ‘what does the world die from?’:
 In 2017, around 56 million people died – nearly half of these were aged 70 years or older; 27% aged 50-69; 14% aged 15-49; only 1% aged 5-14; and around 10% were children under the age of 5.
 The leading global killer in 2017 were cardiovascular diseases (CVD), which refer to a range of diseases that affect the heart and blood vessels…Cardiovascular diseases were responsible for around one-third of all deaths.</description>
     </item>
